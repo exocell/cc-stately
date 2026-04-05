@@ -1,0 +1,13 @@
+{
+  "name": "cc-stately",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "dev": "cp src/statusline-command.js ~/.claude/statusline-command.js"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
