@@ -102,7 +102,7 @@ const renderSymbol = (position, leftBg, rightBg) => {
 };
 
 const separators = {
-  leading: (_, rightBg) => renderSymbol("leading", null, rightBg),
+  leading: (_, rightBg) => renderSymbol("leading", rightBg, null),
   between: (leftBg, rightBg) => renderSymbol("between", leftBg, rightBg),
   trailing: (leftBg) => renderSymbol("trailing", leftBg, null),
 };
