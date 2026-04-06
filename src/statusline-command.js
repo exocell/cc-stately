@@ -51,19 +51,35 @@
 //    ├─ original_cwd                   Directory before entering the worktree
 //    └─ original_branch                Branch checked out before entering the worktree
 
-const palette = {
-  crust: [17, 17, 27],
-  text: [205, 214, 244],
-  mauve: [203, 166, 247],
-  red: [243, 139, 168],
-  sapphire: [116, 199, 236],
-  teal: [148, 226, 213],
-  peach: [250, 179, 135],
-  yellow: [249, 226, 175],
-  green: [166, 227, 161],
-  pink: [245, 194, 231],
-  blue: [137, 180, 250],
-  lavender: [180, 190, 254],
+const theme = {
+  palette: {
+    crust: [17, 17, 27],
+    text: [205, 214, 244],
+    mauve: [203, 166, 247],
+    red: [243, 139, 168],
+    sapphire: [116, 199, 236],
+    teal: [148, 226, 213],
+    peach: [250, 179, 135],
+    yellow: [249, 226, 175],
+    green: [166, 227, 161],
+    pink: [245, 194, 231],
+    blue: [137, 180, 250],
+    lavender: [180, 190, 254],
+  },
+  separators: {
+    leading: {
+      symbol: "",
+      inverse: false,
+    },
+    between: {
+      symbol: "",
+      inverse: false,
+    },
+    trailing: {
+      symbol: "",
+      inverse: false,
+    },
+  },
 };
 
 const ansi = {
@@ -73,12 +89,22 @@ const ansi = {
   reset: "\x1b[0m",
 };
 
+const renderSymbol = (position, leftBg, rightBg) => {
+  const separator = theme.separators[position];
+  const styles = [];
+
+  leftBg && styles.push(ansi.fg(theme.palette[leftBg]));
+  rightBg && styles.push(ansi.bg(theme.palette[rightBg]));
+  separator.inverse && styles.push(ansi.inverse);
+  styles.push(separator.symbol, ansi.reset);
+
+  return styles.join("");
+};
+
 const separators = {
-  leading: (_, nextBg) =>
-    `${ansi.fg(palette[nextBg])}${ansi.inverse}${ansi.reset}`,
-  between: (currentBg, nextBg) =>
-    `${ansi.fg(palette[currentBg])}${ansi.bg(palette[nextBg])}${ansi.reset}`,
-  trailing: (currentBg) => `${ansi.fg(palette[currentBg])}${ansi.reset}`,
+  leading: (_, rightBg) => renderSymbol("leading", null, rightBg),
+  between: (leftBg, rightBg) => renderSymbol("between", leftBg, rightBg),
+  trailing: (leftBg) => renderSymbol("trailing", leftBg, null),
 };
 
 const statusRows = [
@@ -151,8 +177,8 @@ const formatSegmentValue = (path, value) => {
 // Rendering functions
 const renderSegment = (segment) => {
   return [
-    ansi.bg(palette[segment.bg]),
-    ansi.fg(palette[segment.fg]),
+    ansi.bg(theme.palette[segment.bg]),
+    ansi.fg(theme.palette[segment.fg]),
     ` ${segment.text} ${ansi.reset}`,
   ].join("");
 };
@@ -166,16 +192,15 @@ const renderRow = (row) => {
 
   const items = [separators.leading(null, segments[0].bg)];
 
-  segments.forEach((segment, index) => {
-    const nextSegment = segments[index + 1];
+  segments.forEach((leftSegment, index) => {
+    const rightSegment = segments[index + 1];
 
-    items.push(renderSegment(segment));
-    items.push(
-      nextSegment
-        ? separators.between(segment.bg, nextSegment.bg)
-        : separators.trailing(segment.bg),
-    );
+    items.push(renderSegment(leftSegment));
+    rightSegment &&
+      items.push(separators.between(leftSegment.bg, rightSegment.bg));
   });
+
+  items.push(separators.trailing(segments[segments.length - 1].bg));
 
   return items.join("");
 };
